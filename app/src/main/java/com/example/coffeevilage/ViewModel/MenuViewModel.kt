@@ -53,6 +53,7 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedTemperature = MutableStateFlow("ICE")
     val selectedTemperature: StateFlow<String> = _selectedTemperature
 
+
     //order tab들 필터링해서 갖고온 리스트
     val filteredMenu: StateFlow<List<Menu>> = combine(
         _menuList, _selectedTabIndex, _selectedTemperature
@@ -68,8 +69,8 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
         val drinkType =
             if (temperature == "ICE") DrinkType.ICE else DrinkType.HOT
 
-        menuList.filter { it.category == category && it.drinkType == drinkType }
-    }.distinctUntilChanged() // 동일한 결과면 UI 갱신 안 함
+        menuList.filter { it.category == category && it.drinkType == drinkType || it.category == category && it.drinkType == null }
+    }.distinctUntilChanged { old, new -> old == new }
      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
@@ -115,13 +116,13 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
             Menu(17, "아이스 고구마라떼", 3500, R.drawable.sweetpotato, Category.NONCOFFEE, DrinkType.ICE),
             Menu(18, "아이스 초코라떼", 3500, R.drawable.choco, Category.NONCOFFEE, DrinkType.ICE),
             Menu(19, "아이스 녹차라떼", 3500, R.drawable.greentea, Category.NONCOFFEE, DrinkType.ICE),
-            Menu(20, "아이스 초코나무라떼", 3500, R.drawable.coffee, Category.NONCOFFEE, DrinkType.ICE),
+            Menu(20, "아이스 초코나무라떼", 3500, R.drawable.chocogreentea, Category.NONCOFFEE, DrinkType.ICE),
             Menu(21, "아이스 곡물라떼", 3500, R.drawable.grain, Category.NONCOFFEE, DrinkType.ICE),
 
             Menu(22, "고구마라떼", 3500, R.drawable.sweetpotato, Category.NONCOFFEE, DrinkType.HOT),
             Menu(23, "초코라떼", 3500, R.drawable.choco, Category.NONCOFFEE, DrinkType.HOT),
             Menu(24, "녹차라떼", 3500, R.drawable.greentea, Category.NONCOFFEE, DrinkType.HOT),
-            Menu(25, "초코나무라떼", 3500, R.drawable.coffee, Category.NONCOFFEE, DrinkType.HOT),
+            Menu(25, "초코나무라떼", 3500, R.drawable.chocogreentea, Category.NONCOFFEE, DrinkType.HOT),
             Menu(26, "곡물라떼", 3500, R.drawable.grain, Category.NONCOFFEE, DrinkType.HOT),
             //--beverage
             Menu(27, "딸기스무디", 3500, R.drawable.strawberry, Category.BEVERAGE, DrinkType.ICE),
@@ -159,7 +160,7 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
             Menu(51, "페퍼민트", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
             Menu(52, "캐모마일", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
 
-            Menu(53, "옛날 팥빙수", 6000, R.drawable.bingsu, Category.DESSERT, DrinkType.ICE),
+            Menu(53, "옛날 팥빙수", 6000, R.drawable.bingsu, Category.DESSERT, null),
         )
     }
 

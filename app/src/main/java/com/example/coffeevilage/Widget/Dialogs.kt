@@ -46,7 +46,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
+import com.example.coffeevilage.Data.Category
 import com.example.coffeevilage.R
+import com.example.coffeevilage.ViewModel.CartViewModel
+import com.example.coffeevilage.ViewModel.MenuViewModel
+import com.example.coffeevilage.ViewModel.StateViewModel
 
 @Composable
 fun CallDialog(
@@ -261,6 +265,80 @@ fun CommonAlertDialog(
 
         modifier = Modifier.background(backgroundColor)
     )
+}
+
+@Composable
+fun OrderDetailBottomSheet(
+    stateViewModel: StateViewModel,
+    menuViewModel: MenuViewModel,
+    cartViewModel: CartViewModel
+) {
+    val selectedMenu = menuViewModel.selectedMenu
+    var dialogHeight = 0f
+    var screen: @Composable () -> Unit = when (selectedMenu?.category) {
+        Category.COFFEE, Category.NONCOFFEE -> {
+            dialogHeight = 0.75f
+            {
+                OrderDetailPage_ShotOption(
+                    menu = selectedMenu,
+                    cartViewModel = cartViewModel,
+                    onDismiss = { stateViewModel.showOrderBottomSheet = false }
+                )
+            }
+        }
+
+        Category.BEVERAGE, Category.TEA -> {
+            dialogHeight = 0.5f
+            {
+                OrderDetailPage_NoShotOption(
+                    menu = selectedMenu,
+                    cartViewModel = cartViewModel,
+                    onDismiss = { stateViewModel.showOrderBottomSheet = false }
+                )
+            }
+        }
+
+        Category.DESSERT -> {
+            dialogHeight = 0.4f
+            {
+                OrderDetailPage_OnlyCnt(
+                    menu = selectedMenu,
+                    cartViewModel = cartViewModel,
+                    onDismiss = { stateViewModel.showOrderBottomSheet = false }
+                )
+            }
+        }
+
+        null -> TODO()
+    }
+
+
+    Dialog(
+        onDismissRequest = { stateViewModel.showOrderBottomSheet = false },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(dialogHeight)
+                    .background(
+                        color = colorResource(R.color.brown_3),
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.Top
+            ) {
+                screen()
+            }
+        }
+    }
 }
 
 

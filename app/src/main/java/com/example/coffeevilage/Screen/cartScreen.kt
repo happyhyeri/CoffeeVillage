@@ -41,14 +41,15 @@ import com.example.coffeevilage.Data.Menu
 import com.example.coffeevilage.Data.ScreenItem
 import com.example.coffeevilage.R
 import com.example.coffeevilage.ViewModel.CartViewModel
+import com.example.coffeevilage.ViewModel.StateViewModel
 import com.example.coffeevilage.Widget.CallDialog
 import com.example.coffeevilage.Widget.CartItmeCard
+import com.example.coffeevilage.Widget.CartTopAppBar
 import com.example.coffeevilage.Widget.CommonTopAppBar
 
 @Composable
-fun cartScreen(cartViewModel: CartViewModel) {
+fun cartScreen(cartViewModel: CartViewModel, stateViewModel: StateViewModel) {
 
-    var showCallDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -57,12 +58,7 @@ fun cartScreen(cartViewModel: CartViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        CommonTopAppBar(
-            "CART",
-            null,
-            R.color.brown_2,
-            null,
-            { })
+        CartTopAppBar(stateViewModel)
         Column(Modifier.weight(3f)) {
             CartItemList(cartViewModel)
         }

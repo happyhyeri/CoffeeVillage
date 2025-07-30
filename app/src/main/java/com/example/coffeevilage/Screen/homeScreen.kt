@@ -78,6 +78,8 @@ import com.example.coffeevilage.ViewModel.StateViewModel
 import com.example.coffeevilage.ViewModel.UserViewModel
 import com.example.coffeevilage.Widget.CoffeeImageCard
 import com.example.coffeevilage.Widget.CommonTopAppBar
+import com.example.coffeevilage.Widget.OrderDetailBottomSheet
+import com.example.coffeevilage.Widget.OrderDetailPage_ShotOption
 import com.example.coffeevilage.Widget.QuickOrderCard
 import com.example.coffeevilage.Widget.TabText
 import com.example.coffeevilage.Widget.TeaImageCard
@@ -137,38 +139,7 @@ fun homeScreen(
             }, onClickNo = { showCallDialog = false })
         }
         if (stateViewModel.showOrderBottomSheet) {
-            Dialog(
-                onDismissRequest = { stateViewModel.showOrderBottomSheet = false },
-                properties = DialogProperties(
-                    usePlatformDefaultWidth = false
-                )
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.75f)
-                            .background(
-                                color = colorResource(R.color.brown_3),
-                                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                            )
-                            .padding(10.dp),
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        menuViewModel.selectedMenu?.let {
-                            OrderDetailPage(
-                                menu = it,
-                                cartViewModel,
-                                { stateViewModel.showOrderBottomSheet = false },
-                            )
-                        }
-                    }
-                }
-            }
+            OrderDetailBottomSheet(stateViewModel, menuViewModel, cartViewModel)
         }
 
     }

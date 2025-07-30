@@ -727,7 +727,6 @@ fun OrderMenuCard(
                 )
 
 
-
                 Column(
                     verticalArrangement = Arrangement.Bottom,
                     horizontalAlignment = Alignment.CenterHorizontally

@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.coffeevilage.Data.BottomNavItem
+import com.example.coffeevilage.Data.OrderMethod
 import com.example.coffeevilage.Data.ScreenItem
 import com.example.coffeevilage.Navigation.BottomNavigationBar
 import com.example.coffeevilage.Navigation.NavGraph
@@ -69,7 +70,7 @@ fun MainScreen(stateViewModel: StateViewModel, menuViewModel: MenuViewModel, use
             }
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                if (stateViewModel.isOrderNavBottomClicked) {
+                if (stateViewModel.isOrderNavBottomClicked && stateViewModel.orderMethod == null) {
                     OrderDialog(
                         onDismiss = { stateViewModel.closeOrderDialog() },
                         onTakeOutClick = {
@@ -79,6 +80,7 @@ fun MainScreen(stateViewModel: StateViewModel, menuViewModel: MenuViewModel, use
                                 launchSingleTop = true
                                 restoreState = true
                             }
+                            stateViewModel.orderMethod = OrderMethod.TAKEOUT
                           menuViewModel.initOrderTab()
                         },
                         onDrinkHereClick = {
@@ -88,6 +90,7 @@ fun MainScreen(stateViewModel: StateViewModel, menuViewModel: MenuViewModel, use
                                 launchSingleTop = true
                                 restoreState = true
                             }
+                            stateViewModel.orderMethod =  OrderMethod.HERE
                             menuViewModel.initOrderTab()
 
                         }

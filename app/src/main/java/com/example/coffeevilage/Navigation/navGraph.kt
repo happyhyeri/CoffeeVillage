@@ -60,7 +60,7 @@ fun NavGraph(
             orderScreen(stateViewModel, menuViewModel,cartViewModel)
         }
         composable(BottomNavItem.Cart.route) {
-            cartScreen(cartViewModel)
+            cartScreen(cartViewModel,stateViewModel)
         }
         composable(ScreenItem.PhoneRegisterScreen.route) {
             phoneRegisterScreen(stateViewModel, userViewModel, navController)

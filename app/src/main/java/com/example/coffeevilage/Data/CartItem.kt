@@ -5,8 +5,8 @@ data class CartItem(
     val menu: Menu,
     val quantity: Int,
     val optionAppliedPrice: Int,
-    val shot: Shot = Shot.ONE,
-    val size: Size = Size.REGULAR
+    val shot: Shot? = null,
+    val size: Size? = null
 )
 
 enum class Shot(val label: String) {

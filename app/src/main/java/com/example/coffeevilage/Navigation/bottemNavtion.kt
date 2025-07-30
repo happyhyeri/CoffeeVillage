@@ -127,8 +127,14 @@ fun BottomNavigationBar(stateViewModel: StateViewModel, cartViewModel: CartViewM
                                 restoreState = true
                             }
                             stateViewModel.closeOrderDialog()
-                        } else {
+                        } else if(index == 1 && stateViewModel.orderMethod == null){
                             stateViewModel.showOrderDialog()
+                        }else{
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     },
                 )

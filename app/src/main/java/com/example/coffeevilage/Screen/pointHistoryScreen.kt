@@ -157,10 +157,10 @@ fun pointHistorySection() {
     val options = listOf("전체", "적립", "사용")
     val periodOptions = listOf("일주일", "1개월", "3개월", "6개월")
     val sampleData = listOf(
-        PointHistory( "2016.01.11", "3,000", PointType.SAVE),
-        PointHistory( "2015.12.28", "225", PointType.USE),
-        PointHistory( "2015.12.27", "441", PointType.SAVE),
-        PointHistory( "2016.01.11", "3,000", PointType.USE),
+        PointHistory( "2025.07.30", "3,000", PointType.SAVE),
+        PointHistory( "2025.07.30", "225", PointType.USE),
+        PointHistory( "2025.07.30", "441", PointType.SAVE),
+        PointHistory( "2025.07.30", "3,000", PointType.USE),
 
 
         )
