@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CoffeeVilage" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="Theme.Sample" parent="Theme.CoffeeVilage" />
+
+    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">
+        <!-- 배경 색상 -->
+        <item name="windowSplashScreenBackground">@color/brown_3</item>
+        <!-- 앱 로고 -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/coffeevillage_logo_</item>
+        <!-- 아이콘 크기 -->
+        <item name="windowSplashScreenIconBackgroundColor">@color/brown_3</item>
+        <!-- 유지 시간 최소화 (시스템 자동 제어) -->
+        <item name="postSplashScreenTheme">@style/Theme.Sample</item>
+    </style>
+</resources>
