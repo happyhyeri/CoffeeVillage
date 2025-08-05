@@ -77,7 +77,7 @@ import com.example.coffeevilage.Widget.QuantitySelectorSection
 import com.example.coffeevilage.Widget.ScrollTabs
 
 @Composable
-fun orderScreen(
+fun OrderScreen(
     stateViewModel: StateViewModel,
     menuViewModel: MenuViewModel,
     cartViewModel: CartViewModel,

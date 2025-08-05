@@ -48,7 +48,7 @@ import com.example.coffeevilage.Widget.BackTopBar
 import com.example.coffeevilage.Widget.CommonAlertDialog
 
 @Composable
-fun phoneRegisterScreen(
+fun PhoneRegisterScreen(
     stateViewModel: StateViewModel,
     userViewModel: UserViewModel,
     navController: NavHostController

@@ -57,7 +57,8 @@ dependencies {
     implementation ("io.github.bootpay:android:4.4.3") //최신 버전 추천
     implementation ("io.github.bootpay:android-bio:+") //생체인증 결제 사용시 추가
 
-   
+   //스플레쉬
+    implementation("androidx.core:core-splashscreen:1.0.0")
 
     implementation("androidx.compose.material:material:$compose_ui_version")
     implementation("androidx.navigation:navigation-compose:$nav_version")

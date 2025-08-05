@@ -4,6 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +23,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -39,7 +43,6 @@ import com.example.coffeevilage.ViewModel.UserViewModel
 import com.example.coffeevilage.Widget.OrderDialog
 
 class MainActivity : ComponentActivity() {
-    private lateinit var paymentLauncher: ActivityResultLauncher<Intent>
 
     private val stateViewModel: StateViewModel by viewModels()
     private val cartViewModel: CartViewModel by viewModels()
@@ -51,24 +54,32 @@ class MainActivity : ComponentActivity() {
     }
     private val pointHistoryViewModel : PointHistoryViewModel by viewModels()
 
+    private var isLoadingDone = false
+    private var isMinimumDelayPassed = false
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-         paymentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val success = result.data?.getBooleanExtra("paymentResult", false) ?: false
-                if(success){
-                    //장바구니 비워주기
-                    Log.d("하잇","${success}")
-                    cartViewModel.cartList.clear()
-                }
-            }
+
+        val splashScreen = installSplashScreen()
+
+        // 최소 2초 경과 시간 설정
+        val startTime = SystemClock.elapsedRealtime()
+        Handler(Looper.getMainLooper()).postDelayed({
+            isMinimumDelayPassed = true
+        }, 2000)
+
+        // 예: 실제 로딩 작업이 끝났을 때
+        //loadInitialData {
+        isLoadingDone = true
+        //}
+
+        // 조건: 최소 시간 + 로딩 완료
+        splashScreen.setKeepOnScreenCondition {
+            !(isMinimumDelayPassed && isLoadingDone)
         }
 
+        enableEdgeToEdge()
 
         setContent {
             MainScreen(stateViewModel, menuViewModel,userViewModel,cartViewModel,pointHistoryViewModel )

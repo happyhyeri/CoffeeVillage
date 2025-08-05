@@ -33,6 +33,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.coffeevilage.Data.BottomNavItem
 import com.example.coffeevilage.R
 import com.example.coffeevilage.ViewModel.CartViewModel
+import com.example.coffeevilage.ViewModel.MenuViewModel
 import com.example.coffeevilage.ViewModel.StateViewModel
 
 
@@ -126,16 +127,21 @@ fun BottomNavigationBar(stateViewModel: StateViewModel, cartViewModel: CartViewM
                                 launchSingleTop = true
                                 restoreState = true
                             }
+
                             stateViewModel.closeOrderDialog()
                         } else if(index == 1 && stateViewModel.orderMethod == null){
                             stateViewModel.showOrderDialog()
                         }else{
+
                             navController.navigate(item.route) {
                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }
+
+
                         }
+
                     },
                 )
         }

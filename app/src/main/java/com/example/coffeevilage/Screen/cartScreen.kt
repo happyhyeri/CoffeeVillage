@@ -3,6 +3,7 @@ package com.example.coffeevilage.Screen
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ import com.example.coffeevilage.Data.ScreenItem
 import com.example.coffeevilage.Payment.TotalPaymentActivity
 import com.example.coffeevilage.R
 import com.example.coffeevilage.ViewModel.CartViewModel
+import com.example.coffeevilage.ViewModel.MenuViewModel
 import com.example.coffeevilage.ViewModel.StateViewModel
 import com.example.coffeevilage.ViewModel.UserViewModel
 import com.example.coffeevilage.Widget.CallDialog
@@ -53,13 +55,16 @@ import com.example.coffeevilage.Widget.CartTopAppBar
 import com.example.coffeevilage.Widget.CommonTopAppBar
 
 @Composable
-fun cartScreen(
+fun CartScreen(
     cartViewModel: CartViewModel,
     stateViewModel: StateViewModel,
     userViewModel: UserViewModel,
-    paymentLauncher: ActivityResultLauncher<Intent>
+    paymentLauncher: ActivityResultLauncher<Intent>,
+    menuViewModel: MenuViewModel
 ) {
-
+    LaunchedEffect(true) {
+        menuViewModel.initOrderTab()
+    }
 
     Column(
         modifier = Modifier
@@ -81,7 +86,11 @@ fun cartScreen(
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun TotalAndButtonSection(cartViewModel: CartViewModel, userViewModel: UserViewModel, paymentLauncher: ActivityResultLauncher<Intent>) {
+fun TotalAndButtonSection(
+    cartViewModel: CartViewModel,
+    userViewModel: UserViewModel,
+    paymentLauncher: ActivityResultLauncher<Intent>
+) {
     val context = LocalContext.current
     val items = cartViewModel.cartList
     val isRegisteredUser = userViewModel.isPhoneNumberExist
@@ -151,7 +160,7 @@ fun TotalAndButtonSection(cartViewModel: CartViewModel, userViewModel: UserViewM
         Spacer(modifier = Modifier.height(7.dp))
         Button(
             onClick = {
-                if(isRegisteredUser) {
+                if (isRegisteredUser) {
                     if (items.size != 0) {
                         val intent = Intent(context, TotalPaymentActivity::class.java).apply {
                             putExtra("price", cartViewModel.totalPrice.toDouble())
@@ -174,29 +183,29 @@ fun TotalAndButtonSection(cartViewModel: CartViewModel, userViewModel: UserViewM
                     } else {
                         Toast.makeText(context, "주문할 내역이 없습니다.", Toast.LENGTH_SHORT).show()
                     }
-                }else{
+                } else {
                     Toast.makeText(context, "전화번호 등록 후 이용해주세요.", Toast.LENGTH_SHORT).show()
                 }
 
 
-    },
-    colors = ButtonDefaults.buttonColors(
-        containerColor = colorResource(R.color.dark_brown),
-        contentColor = Color.White
-    ),
-    shape = RoundedCornerShape(10),
-    modifier = Modifier
-        .fillMaxWidth()
-        .height(60.dp)
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorResource(R.color.dark_brown),
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(10),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
 
-    ) {
-        Text(
-            text = "주문하기",
-            fontWeight = FontWeight.SemiBold,
-            color = colorResource(R.color.brown_white)
-        )
+        ) {
+            Text(
+                text = "주문하기",
+                fontWeight = FontWeight.SemiBold,
+                color = colorResource(R.color.brown_white)
+            )
+        }
     }
-}
 }
 
 

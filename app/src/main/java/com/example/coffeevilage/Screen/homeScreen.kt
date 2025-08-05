@@ -98,7 +98,7 @@ import java.util.UUID
 
 @SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
-fun homeScreen(
+fun HomeScreen(
     stateViewModel: StateViewModel,
     menuViewModel: MenuViewModel,
     userViewModel: UserViewModel,
@@ -114,7 +114,8 @@ fun homeScreen(
     val lifecycleState by lifecycle.observeAsState()
     val isRegisteredUser = userViewModel.isPhoneNumberExist
 
-    LaunchedEffect(lifecycleState) {
+    LaunchedEffect(true) {
+        menuViewModel.initOrderTab()
         menuViewModel.getFavoriteMenus() //여기서 Favorite -> Menu
         menuViewModel.getRecentOrderMenus()
     }

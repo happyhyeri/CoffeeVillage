@@ -29,11 +29,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.coffeevilage.Data.BottomNavItem
 import com.example.coffeevilage.Data.ScreenItem
-import com.example.coffeevilage.Screen.cartScreen
-import com.example.coffeevilage.Screen.homeScreen
-import com.example.coffeevilage.Screen.orderScreen
-import com.example.coffeevilage.Screen.phoneRegisterScreen
-import com.example.coffeevilage.Screen.pointHistoryScreen
+import com.example.coffeevilage.Screen.CartScreen
+import com.example.coffeevilage.Screen.HomeScreen
+import com.example.coffeevilage.Screen.OrderScreen
+import com.example.coffeevilage.Screen.PhoneRegisterScreen
+import com.example.coffeevilage.Screen.PointHistoryScreen
+
+
 import com.example.coffeevilage.ViewModel.CartViewModel
 import com.example.coffeevilage.ViewModel.MenuViewModel
 import com.example.coffeevilage.ViewModel.PointHistoryViewModel
@@ -92,7 +94,7 @@ fun NavGraph(
         popExitTransition = { ExitTransition.None }
     ) {
         composable(BottomNavItem.Home.route) {
-            homeScreen(
+            HomeScreen(
                 stateViewModel,
                 menuViewModel,
                 userViewModel,
@@ -103,16 +105,16 @@ fun NavGraph(
             )
         }
         composable(BottomNavItem.Order.route) {
-            orderScreen(stateViewModel, menuViewModel, cartViewModel, userViewModel ,paymentLauncher)
+            OrderScreen(stateViewModel, menuViewModel, cartViewModel, userViewModel ,paymentLauncher)
         }
         composable(BottomNavItem.Cart.route) {
-            cartScreen(cartViewModel, stateViewModel,userViewModel, paymentLauncher)
+            CartScreen(cartViewModel, stateViewModel,userViewModel, paymentLauncher,menuViewModel)
         }
         composable(ScreenItem.PhoneRegisterScreen.route) {
-            phoneRegisterScreen(stateViewModel, userViewModel, navController)
+            PhoneRegisterScreen(stateViewModel, userViewModel, navController)
         }
         composable(ScreenItem.PointHistoryScreen.route) {
-            pointHistoryScreen(pointHistoryViewModel, navController)
+            PointHistoryScreen(pointHistoryViewModel, navController)
         }
 
     }

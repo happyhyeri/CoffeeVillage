@@ -45,7 +45,7 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun pointHistoryScreen(pointHistoryViewModel: PointHistoryViewModel, navController: NavHostController) {
+fun PointHistoryScreen(pointHistoryViewModel: PointHistoryViewModel, navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
