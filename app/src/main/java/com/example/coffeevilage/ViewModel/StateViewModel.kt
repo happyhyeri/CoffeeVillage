@@ -10,7 +10,7 @@ import com.example.coffeevilage.Data.OrderMethod
 class StateViewModel : ViewModel() {
 
     //전화주문 전화번호
-    val phoneNumber = "010-9525-1123"
+    val phoneNumber = "010-1234-1234"
 
     var isOrderNavBottomClicked by mutableStateOf(false)
     var orderMethod : OrderMethod? by mutableStateOf(null)

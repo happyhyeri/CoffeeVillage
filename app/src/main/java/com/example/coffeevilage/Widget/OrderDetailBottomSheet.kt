@@ -1,5 +1,8 @@
 package com.example.coffeevilage.Widget
 
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -32,22 +35,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.coffeevilage.Data.Category
 import com.example.coffeevilage.Data.Menu
+import com.example.coffeevilage.Payment.TotalPaymentActivity
 import com.example.coffeevilage.R
 import com.example.coffeevilage.ViewModel.CartViewModel
 
 @Composable
 fun OrderDetailPage_ShotOption(
+    isRegisteredUser: Boolean,
     menu: Menu,
     cartViewModel: CartViewModel,
+    paymentLauncher: ActivityResultLauncher<Intent>,
     onDismiss: () -> Unit
 ) {
 
+    val context = LocalContext.current
     var selectedSize by remember { mutableStateOf("기본") }
     var selectedShot by remember { mutableStateOf("기본") }
 
@@ -182,7 +191,6 @@ fun OrderDetailPage_ShotOption(
 
         Spacer(Modifier.height(itemSpacer))
 
-
         //3. 수량 선택
         Text(
             "수량",
@@ -219,7 +227,22 @@ fun OrderDetailPage_ShotOption(
         ) {
             //바로 주문 Btn
             Button(
-                onClick = {},
+                onClick = {
+                    if (isRegisteredUser) {
+                        val intent = Intent(context, TotalPaymentActivity::class.java).apply {
+                            putExtra("price", price.value.toDouble() * count)
+                            putExtra("orderCnt", count)
+                            if (menu.category == Category.DESSERT) {
+                                putExtra("orderName", menu.name + " ${count}개")
+                            } else {
+                                putExtra("orderName", menu.name + " ${count}잔")
+                            }
+                        }
+                        paymentLauncher.launch(intent)
+                    }else{
+                        Toast.makeText(context, "전화번호 등록 후 이용해주세요.", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier
                     .weight(1f)
                     .height(55.dp),
@@ -261,11 +284,13 @@ fun OrderDetailPage_ShotOption(
 
 @Composable
 fun OrderDetailPage_NoShotOption(
+    isRegisteredUser: Boolean,
     menu: Menu,
     cartViewModel: CartViewModel,
+    paymentLauncher: ActivityResultLauncher<Intent>,
     onDismiss: () -> Unit
 ) {
-
+    val context = LocalContext.current
     var selectedSize by remember { mutableStateOf("기본") }
 
     var isLarge by remember { mutableStateOf(false) }
@@ -399,7 +424,23 @@ fun OrderDetailPage_NoShotOption(
             ) {
                 //바로 주문 Btn
                 Button(
-                    onClick = {},
+                    onClick = {
+                        if (isRegisteredUser) {
+                            val intent = Intent(context, TotalPaymentActivity::class.java).apply {
+                                putExtra("price", price.value.toDouble() * count)
+                                putExtra("orderCnt", count)
+                                if (menu.category == Category.DESSERT) {
+                                    putExtra("orderName", menu.name + " ${count}개")
+                                } else {
+                                    putExtra("orderName", menu.name + " ${count}잔")
+                                }
+                            }
+                            paymentLauncher.launch(intent)
+                        } else {
+                            Toast.makeText(context, "전화번호 등록 후 이용해주세요.", Toast.LENGTH_SHORT).show()
+                        }
+
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .height(55.dp),
@@ -446,12 +487,14 @@ fun OrderDetailPage_NoShotOption(
 
 @Composable
 fun OrderDetailPage_OnlyCnt(
+    isRegisteredUser: Boolean,
     menu: Menu,
     cartViewModel: CartViewModel,
+    paymentLauncher: ActivityResultLauncher<Intent>,
     onDismiss: () -> Unit
 ) {
     var count by remember { mutableStateOf(1) }
-
+    val context = LocalContext.current
     val spacer = 10.dp
     val itemSpacer = 20.dp
 
@@ -495,7 +538,12 @@ fun OrderDetailPage_OnlyCnt(
             Spacer(Modifier.height(itemSpacer))
 
 
-            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(), verticalArrangement = Arrangement.Bottom) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Bottom
+            ) {
                 //2. 수량 선택
                 Text(
                     "수량",
@@ -531,7 +579,23 @@ fun OrderDetailPage_OnlyCnt(
                 ) {
                     //바로 주문 Btn
                     Button(
-                        onClick = {},
+                        onClick = {
+                            if(isRegisteredUser) {
+                                val intent =
+                                    Intent(context, TotalPaymentActivity::class.java).apply {
+                                        putExtra("price", menu.price.toDouble() * count)
+                                        putExtra("orderCnt", count)
+                                        if (menu.category == Category.DESSERT) {
+                                            putExtra("orderName", menu.name + " ${count}개")
+                                        } else {
+                                            putExtra("orderName", menu.name + " ${count}잔")
+                                        }
+                                    }
+                                paymentLauncher.launch(intent)
+                            }else{
+                                Toast.makeText(context, "전화번호 등록 후 이용해주세요.", Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(55.dp),

@@ -1,5 +1,7 @@
 package com.example.coffeevilage.Screen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,12 +36,16 @@ import androidx.navigation.compose.rememberNavController
 import com.example.coffeevilage.Data.PointHistory
 import com.example.coffeevilage.Data.PointType
 import com.example.coffeevilage.R
+import com.example.coffeevilage.ViewModel.PointHistoryViewModel
 import com.example.coffeevilage.Widget.BackTopBar
 import com.example.coffeevilage.Widget.PeriodSelectToggleButtons
 import com.example.coffeevilage.Widget.PointRadioButton
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun pointHistoryScreen(navController: NavHostController) {
+fun pointHistoryScreen(pointHistoryViewModel: PointHistoryViewModel, navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -49,8 +56,8 @@ fun pointHistoryScreen(navController: NavHostController) {
         }
         Column(modifier = Modifier.fillMaxWidth())
         {
-            pointTotalSection()
-            pointHistorySection()
+            pointTotalSection(pointHistoryViewModel)
+            pointHistorySection(pointHistoryViewModel)
         }
 
 
@@ -58,7 +65,8 @@ fun pointHistoryScreen(navController: NavHostController) {
 }
 
 @Composable
-fun pointTotalSection() {
+fun pointTotalSection(pointHistoryViewModel: PointHistoryViewModel) {
+    val point = pointHistoryViewModel.point.collectAsState()
 
     val fontWeight = FontWeight.Bold
     val fontColor = colorResource(R.color.brown_white)
@@ -89,7 +97,7 @@ fun pointTotalSection() {
                 fontSize = 17.sp
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("0", fontWeight = fontWeight, color = fontColor, fontSize = 17.sp)
+                Text("${point.value}", fontWeight = fontWeight, color = fontColor, fontSize = 17.sp)
                 Text(
                     "P",
                     fontWeight = fontWeight,
@@ -116,7 +124,7 @@ fun pointTotalSection() {
         ) {
             Text(text = "총 적립 포인트 ", fontWeight = FontWeight.SemiBold, color = fontColor)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("0", fontWeight = fontWeight, color = fontColor)
+                Text("${pointHistoryViewModel.usedPoint+ point.value}", fontWeight = fontWeight, color = fontColor)
                 Text(
                     "P",
                     fontWeight = fontWeight,
@@ -138,7 +146,7 @@ fun pointTotalSection() {
         ) {
             Text(text = "사용 포인트 ", fontWeight = FontWeight.SemiBold, color = fontColor)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("0", fontWeight = fontWeight, color = fontColor)
+                Text("${pointHistoryViewModel.usedPoint}", fontWeight = fontWeight, color = fontColor)
                 Text(
                     "P",
                     fontWeight = fontWeight,
@@ -152,22 +160,41 @@ fun pointTotalSection() {
 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun pointHistorySection() {
+fun pointHistorySection(pointHistoryViewModel: PointHistoryViewModel) {
     val options = listOf("전체", "적립", "사용")
     val periodOptions = listOf("일주일", "1개월", "3개월", "6개월")
-    val sampleData = listOf(
-        PointHistory( "2025.07.30", "3,000", PointType.SAVE),
-        PointHistory( "2025.07.30", "225", PointType.USE),
-        PointHistory( "2025.07.30", "441", PointType.SAVE),
-        PointHistory( "2025.07.30", "3,000", PointType.USE),
-
-
-        )
-
 
     var selectedOption by remember { mutableStateOf("전체") }
     var periodSelectedOption by remember { mutableStateOf("일주일") }
+
+
+    val filteredList = remember(pointHistoryViewModel.pointHistoryList, selectedOption, periodSelectedOption) {
+        val now = LocalDate.now()
+
+        pointHistoryViewModel.pointHistoryList.filter { item ->
+            val itemDate = LocalDate.parse(item.date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+            val matchesType = when (selectedOption) {
+                "전체" -> true
+                "적립" -> item.type == PointType.SAVE
+                "사용" -> item.type == PointType.USE
+                else -> true
+            }
+
+            val withinPeriod = when (periodSelectedOption) {
+                "일주일" -> itemDate in now.minusWeeks(1)..now
+                "1개월" -> itemDate in now.minusMonths(1)..now
+                "3개월" -> itemDate in now.minusMonths(3)..now
+                "6개월" -> itemDate in now.minusMonths(6)..now
+                else -> true
+            }
+
+            matchesType && withinPeriod
+        }
+    }
+
 
     PointRadioButton(
         options = options,
@@ -182,7 +209,7 @@ fun pointHistorySection() {
             periodOptions = periodOptions,
             periodSelectedOption = periodSelectedOption,
             onPeriodOptionClick = { PeriodOption -> periodSelectedOption = PeriodOption })
-        PointHistoryList(sampleData)
+        PointHistoryList(filteredList)
 
     }
 
@@ -224,14 +251,14 @@ fun PointHistoryItem(history: PointHistory) {
 
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top=4.dp),
+            modifier = Modifier.fillMaxWidth().padding(top=7.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (history.type == PointType.SAVE) "적립" else "소멸",
-                fontSize = 14.sp,
-                color = if (history.type == PointType.SAVE) Color.Blue else Color.Red,
+                text = history.message,
+                fontSize = 13.sp,
+                color = colorResource(R.color.dark_brown),
                 fontWeight = FontWeight.SemiBold
             )
 
@@ -240,7 +267,7 @@ fun PointHistoryItem(history: PointHistory) {
                 text = (if (history.type == PointType.SAVE) "+" else "-") + history.point,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
-                color = colorResource(R.color.dark_brown),
+                color = if (history.type == PointType.SAVE) Color.Blue else Color.Red,
             )
         }
 
@@ -251,5 +278,5 @@ fun PointHistoryItem(history: PointHistory) {
 @Composable
 fun showPointScreen() {
     val navController = rememberNavController()
-    pointHistoryScreen(navController)
+
 }

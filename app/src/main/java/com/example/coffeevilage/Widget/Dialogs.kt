@@ -1,6 +1,8 @@
 package com.example.coffeevilage.Widget
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,6 +53,7 @@ import com.example.coffeevilage.R
 import com.example.coffeevilage.ViewModel.CartViewModel
 import com.example.coffeevilage.ViewModel.MenuViewModel
 import com.example.coffeevilage.ViewModel.StateViewModel
+import com.example.coffeevilage.ViewModel.UserViewModel
 
 @Composable
 fun CallDialog(
@@ -269,9 +272,11 @@ fun CommonAlertDialog(
 
 @Composable
 fun OrderDetailBottomSheet(
+    isRegisteredUser : Boolean,
     stateViewModel: StateViewModel,
     menuViewModel: MenuViewModel,
-    cartViewModel: CartViewModel
+    cartViewModel: CartViewModel,
+    paymentLauncher: ActivityResultLauncher<Intent>
 ) {
     val selectedMenu = menuViewModel.selectedMenu
     var dialogHeight = 0f
@@ -280,8 +285,10 @@ fun OrderDetailBottomSheet(
             dialogHeight = 0.75f
             {
                 OrderDetailPage_ShotOption(
+                    isRegisteredUser= isRegisteredUser,
                     menu = selectedMenu,
                     cartViewModel = cartViewModel,
+                    paymentLauncher = paymentLauncher,
                     onDismiss = { stateViewModel.showOrderBottomSheet = false }
                 )
             }
@@ -291,8 +298,10 @@ fun OrderDetailBottomSheet(
             dialogHeight = 0.5f
             {
                 OrderDetailPage_NoShotOption(
+                    isRegisteredUser= isRegisteredUser,
                     menu = selectedMenu,
                     cartViewModel = cartViewModel,
+                    paymentLauncher = paymentLauncher,
                     onDismiss = { stateViewModel.showOrderBottomSheet = false }
                 )
             }
@@ -302,8 +311,10 @@ fun OrderDetailBottomSheet(
             dialogHeight = 0.4f
             {
                 OrderDetailPage_OnlyCnt(
+                    isRegisteredUser= isRegisteredUser,
                     menu = selectedMenu,
                     cartViewModel = cartViewModel,
+                    paymentLauncher = paymentLauncher,
                     onDismiss = { stateViewModel.showOrderBottomSheet = false }
                 )
             }

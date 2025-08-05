@@ -33,7 +33,6 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
         user_prefs.edit().putString("phone_number", phone).apply()
         registeredPhoneNumber = phone
-
     }
 
     init {
@@ -46,6 +45,4 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
         }
     }
-
-
 }

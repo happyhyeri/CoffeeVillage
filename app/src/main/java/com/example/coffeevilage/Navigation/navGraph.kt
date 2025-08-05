@@ -1,9 +1,14 @@
 package com.example.coffeevilage.Navigation
 
+import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
@@ -31,18 +36,51 @@ import com.example.coffeevilage.Screen.phoneRegisterScreen
 import com.example.coffeevilage.Screen.pointHistoryScreen
 import com.example.coffeevilage.ViewModel.CartViewModel
 import com.example.coffeevilage.ViewModel.MenuViewModel
+import com.example.coffeevilage.ViewModel.PointHistoryViewModel
 import com.example.coffeevilage.ViewModel.StateViewModel
 import com.example.coffeevilage.ViewModel.UserViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavGraph(
     stateViewModel: StateViewModel,
     menuViewModel: MenuViewModel,
     userViewModel: UserViewModel,
     cartViewModel: CartViewModel,
+    pointHistoryViewModel: PointHistoryViewModel,
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val isRegisteredUser = userViewModel.isPhoneNumberExist
+    val paymentLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val success = result.data?.getBooleanExtra("paymentResult", false) ?: false
+                val isCart = result.data?.getBooleanExtra("isCart", false) ?: false
+                val orderCnt = result.data?.getIntExtra("orderCnt", 0) ?: 0
+                val orderMsg = result.data?.getStringExtra("orderMsg") ?: ""
+                if (success && isRegisteredUser) {
+                    //포인트 관련 처리
+                    Log.d("cnt", "$orderCnt")
+                    pointHistoryViewModel.plusPoint(orderCnt, orderMsg, true)
+
+                    //장바구니 경로 주문시
+                    if (isCart) {
+                        //카트아이템 -> 최근 주문
+                        for (i in cartViewModel.cartList) {
+                            menuViewModel.updateRecentOrderMenu(i.menu.id)
+
+                        }
+                        //장바구니 비워주기
+                        cartViewModel.clearCartData()
+                    }else{
+                        menuViewModel.selectedMenu?.let { menuViewModel.updateRecentOrderMenu(it.id) }
+                    }
+                    //바로주문 -> 최근 주문
+                }
+            }
+        }
 
     NavHost(
         navController = navController,
@@ -54,19 +92,27 @@ fun NavGraph(
         popExitTransition = { ExitTransition.None }
     ) {
         composable(BottomNavItem.Home.route) {
-            homeScreen(stateViewModel, menuViewModel, userViewModel, cartViewModel, navController)
+            homeScreen(
+                stateViewModel,
+                menuViewModel,
+                userViewModel,
+                cartViewModel,
+                pointHistoryViewModel,
+                navController,
+                paymentLauncher
+            )
         }
         composable(BottomNavItem.Order.route) {
-            orderScreen(stateViewModel, menuViewModel,cartViewModel)
+            orderScreen(stateViewModel, menuViewModel, cartViewModel, userViewModel ,paymentLauncher)
         }
         composable(BottomNavItem.Cart.route) {
-            cartScreen(cartViewModel,stateViewModel)
+            cartScreen(cartViewModel, stateViewModel,userViewModel, paymentLauncher)
         }
         composable(ScreenItem.PhoneRegisterScreen.route) {
             phoneRegisterScreen(stateViewModel, userViewModel, navController)
         }
         composable(ScreenItem.PointHistoryScreen.route) {
-            pointHistoryScreen(navController)
+            pointHistoryScreen(pointHistoryViewModel, navController)
         }
 
     }

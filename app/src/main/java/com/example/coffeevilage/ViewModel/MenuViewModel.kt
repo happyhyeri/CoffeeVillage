@@ -1,19 +1,24 @@
 package com.example.coffeevilage.ViewModel
 
 import android.app.Application
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coffeevilage.AppDatabase
+import com.example.coffeevilage.DAO.RecentOrderMenuDao
 import com.example.coffeevilage.Data.Category
 import com.example.coffeevilage.Data.DrinkType
 import com.example.coffeevilage.Data.FavoriteMenu
 import com.example.coffeevilage.Data.Menu
+import com.example.coffeevilage.Data.RecentOrderMenu
 import com.example.coffeevilage.R
 import com.example.coffeevilage.Repository.FavoriteMenuRepository
+import com.example.coffeevilage.Repository.RecentOrderMenuRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,22 +28,32 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 class MenuViewModel(application: Application) : AndroidViewModel(application) {
     //Room
     private val favoriteMenuDao = AppDatabase.getInstance(application).favoriteMenuDao()
     private val favoriteMenuRepository = FavoriteMenuRepository(favoriteMenuDao)
+    private val recentOrderMenuDao = AppDatabase.getInstance(application).recentOrderMenuDao()
+    private val recentOrderMenuRepository = RecentOrderMenuRepository(recentOrderMenuDao)
 
     //clickedMenu
-    var selectedMenu : Menu? by mutableStateOf(null)
+    var selectedMenu: Menu? by mutableStateOf(null)
 
-    //즐겨찾기 추가한 메뉴 (FavoriteMenu)List
+    //즐겨찾기 추가한 메뉴 (FavoriteMenu)객체
     private val _favorites = MutableStateFlow<List<FavoriteMenu>>(emptyList())
     val favorites = _favorites.asStateFlow()
 
-    //(Menu)List
+    //(Menu)객체
     private val _favoriteMenuList = MutableStateFlow<List<Menu>>(emptyList())
     val favoriteMenuList = _favoriteMenuList.asStateFlow()
+
+    //최근 주문 추가한 메뉴 (RecentOrderMenu)객체
+    private val _recentOrder = MutableStateFlow<List<RecentOrderMenu>>(emptyList())
+    val recentOrder = _recentOrder.asStateFlow()
+
+    private val _recentOrderMenuList = MutableStateFlow<List<Menu>>(emptyList())
+    val recentOrderMenuList = _recentOrderMenuList.asStateFlow()
 
     //전체 메뉴 리스트
     private val _menuList = MutableStateFlow<List<Menu>>(emptyList())
@@ -71,20 +86,25 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
 
         menuList.filter { it.category == category && it.drinkType == drinkType || it.category == category && it.drinkType == null }
     }.distinctUntilChanged { old, new -> old == new }
-     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
     init {
         loadMenuList()
         viewModelScope.launch {
             _favorites.value = favoriteMenuRepository.getAllFavorites()
+            _recentOrder.value = recentOrderMenuRepository.getAllRecentOrderMenu()
             val favoriteIds = _favorites.value.map { it.menuId }.toSet()
 
             _menuList.value = _menuList.value.map { menu ->
                 menu.copy(isFavorite = favoriteIds.contains(menu.id))
             }
+            getRecentOrderMenus()
+            getFavoriteMenus()
         }
+
     }
+
 
     fun initOrderTab() {
         _selectedTabIndex.value = 0
@@ -118,7 +138,6 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
             Menu(19, "아이스 녹차라떼", 3500, R.drawable.greentea, Category.NONCOFFEE, DrinkType.ICE),
             Menu(20, "아이스 초코나무라떼", 3500, R.drawable.chocogreentea, Category.NONCOFFEE, DrinkType.ICE),
             Menu(21, "아이스 곡물라떼", 3500, R.drawable.grain, Category.NONCOFFEE, DrinkType.ICE),
-
             Menu(22, "고구마라떼", 3500, R.drawable.sweetpotato, Category.NONCOFFEE, DrinkType.HOT),
             Menu(23, "초코라떼", 3500, R.drawable.choco, Category.NONCOFFEE, DrinkType.HOT),
             Menu(24, "녹차라떼", 3500, R.drawable.greentea, Category.NONCOFFEE, DrinkType.HOT),
@@ -140,37 +159,53 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
             Menu(38, "청포도에이드", 3000, R.drawable.greengrape, Category.BEVERAGE, DrinkType.ICE),
             Menu(39, "생과일주스", 3500, R.drawable.tomato, Category.BEVERAGE, DrinkType.ICE),
 //--tea
-            Menu(36, "복숭아 아이스티", 2500, R.drawable.peach, Category.TEA, DrinkType.ICE),
-            Menu(37, "아이스 매실차", 2500, R.drawable.greenplum, Category.TEA, DrinkType.ICE),
-            Menu(38, "아이스 레몬차", 3500, R.drawable.lemon, Category.TEA, DrinkType.ICE),
-            Menu(39, "아이스 자몽차", 3500, R.drawable.grapefruit, Category.TEA, DrinkType.ICE),
-            Menu(40, "아이스 유자차", 3500, R.drawable.yuja, Category.TEA, DrinkType.ICE),
-            Menu(41, "아이스 생강차", 3500, R.drawable.yuja, Category.TEA, DrinkType.ICE),
+            Menu(40, "복숭아 아이스티", 2500, R.drawable.peach, Category.TEA, DrinkType.ICE),
+            Menu(41, "아이스 매실차", 2500, R.drawable.greenplum, Category.TEA, DrinkType.ICE),
+            Menu(42, "아이스 레몬차", 3500, R.drawable.lemon, Category.TEA, DrinkType.ICE),
+            Menu(43, "아이스 자몽차", 3500, R.drawable.grapefruit, Category.TEA, DrinkType.ICE),
+            Menu(44, "아이스 유자차", 3500, R.drawable.yuja, Category.TEA, DrinkType.ICE),
+            Menu(45, "아이스 생강차", 3500, R.drawable.ginger, Category.TEA, DrinkType.ICE),
 
-            Menu(42, "매실차", 2500, R.drawable.greenplum, Category.TEA, DrinkType.HOT),
-            Menu(43, "레몬차", 3500, R.drawable.lemon, Category.TEA, DrinkType.HOT),
-            Menu(44, "자몽차", 3500, R.drawable.grapefruit, Category.TEA, DrinkType.HOT),
-            Menu(45, "유자차", 3500, R.drawable.yuja, Category.TEA, DrinkType.HOT),
-            Menu(46, "생강차", 3500, R.drawable.yuja, Category.TEA, DrinkType.HOT),
+            Menu(46, "매실차", 2500, R.drawable.greenplum, Category.TEA, DrinkType.HOT),
+            Menu(47, "레몬차", 3500, R.drawable.lemon, Category.TEA, DrinkType.HOT),
+            Menu(48, "자몽차", 3500, R.drawable.grapefruit, Category.TEA, DrinkType.HOT),
+            Menu(49, "유자차", 3500, R.drawable.yuja, Category.TEA, DrinkType.HOT),
+            Menu(50, "생강차", 3500, R.drawable.ginger, Category.TEA, DrinkType.HOT),
 
-            Menu(47, "아이스 루이보스", 3000, R.drawable.teas, Category.TEA, DrinkType.ICE),
-            Menu(48, "아이스 페퍼민트", 3000, R.drawable.teas, Category.TEA, DrinkType.ICE),
-            Menu(49, "아이스 캐모마일", 3000, R.drawable.teas, Category.TEA, DrinkType.ICE),
-            Menu(50, "루이보스", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
-            Menu(51, "페퍼민트", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
-            Menu(52, "캐모마일", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
+            Menu(51, "아이스 루이보스", 3000, R.drawable.teas, Category.TEA, DrinkType.ICE),
+            Menu(52, "아이스 페퍼민트", 3000, R.drawable.teas, Category.TEA, DrinkType.ICE),
+            Menu(53, "아이스 캐모마일", 3000, R.drawable.teas, Category.TEA, DrinkType.ICE),
+            Menu(54, "루이보스", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
+            Menu(55, "페퍼민트", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
+            Menu(56, "캐모마일", 3000, R.drawable.teas, Category.TEA, DrinkType.HOT),
 
-            Menu(53, "옛날 팥빙수", 6000, R.drawable.bingsu, Category.DESSERT, null),
+            Menu(57, "옛날 팥빙수", 6000, R.drawable.bingsu, Category.DESSERT, null),
         )
     }
 
     //즐겨찾기 메뉴 갖고오기
     suspend fun getFavoriteMenus() {
         _favorites.value = favoriteMenuRepository.getAllFavorites()
+
         favorites.collect { favs ->
             _favoriteMenuList.value = menuList.value.filter { menu ->
                 favs.any { it.menuId == menu.id }
             }
+        }
+    }
+
+    //최신 주문 메뉴 갖고오기
+    suspend fun getRecentOrderMenus() {
+
+        _recentOrder.value = recentOrderMenuRepository.getAllRecentOrderMenu_OrderBy_date()
+        Log.d("최근주문", "recent.menuId: ${ _recentOrder.value.map { it.menuId }}")
+        recentOrder.collect { recent ->
+            // 메뉴 id를 최근순 정렬대로 뽑아냄
+            val orderedIds = recent.map { it.menuId }
+            _recentOrderMenuList.value = orderedIds.mapNotNull { id ->
+                menuList.value.find { it.id == id }
+            }
+            Log.d("최근주문--", "recent.menuId: ${_recentOrderMenuList.value.map { it.id }}")
         }
     }
 
@@ -202,6 +237,26 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
                 if (menu.id == menuId) menu.copy(isFavorite = !menu.isFavorite)
                 else menu
             }
+        }
+    }
+
+    fun updateRecentOrderMenu(menuId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val recentOrderMenu = recentOrderMenuDao.getRecentOrderMenuByMenuId(menuId)
+
+            if (recentOrderMenu != null) {
+                recentOrderMenuDao.deleteRecentOrderMenu(recentOrderMenu)
+                Log.d("삭제","----")
+            } //최신순으로 만들기 위해서.
+
+            recentOrderMenuDao.insertRecentOrderMenu(
+                RecentOrderMenu(
+                    id = 0,
+                    menuId = menuId,
+                    date = System.currentTimeMillis()
+                )
+            )
+            getRecentOrderMenus()
         }
     }
 }

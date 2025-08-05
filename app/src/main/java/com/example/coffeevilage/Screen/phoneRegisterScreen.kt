@@ -54,6 +54,7 @@ fun phoneRegisterScreen(
     navController: NavHostController
 ) {
 
+
     Column(
         modifier = Modifier
             .fillMaxSize()

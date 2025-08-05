@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    id("kotlin-parcelize")
 
 }
 
@@ -51,6 +52,12 @@ dependencies {
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.compose.ui:ui:$compose_ui_version")
     implementation("androidx.compose.ui:ui-tooling-preview:$compose_ui_version")
+
+    //결제 부트 페이먼트
+    implementation ("io.github.bootpay:android:4.4.3") //최신 버전 추천
+    implementation ("io.github.bootpay:android-bio:+") //생체인증 결제 사용시 추가
+
+   
 
     implementation("androidx.compose.material:material:$compose_ui_version")
     implementation("androidx.navigation:navigation-compose:$nav_version")

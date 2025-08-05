@@ -1,5 +1,6 @@
 package com.example.coffeevilage.Screen
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedContent
@@ -13,6 +14,7 @@ import kotlinx.coroutines.delay
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.animation.AnimatedContent
 
 import androidx.compose.animation.slideInHorizontally
@@ -65,15 +67,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import com.example.coffeevilage.Data.BottomNavItem
 import com.example.coffeevilage.Data.FavoriteMenu
 import com.example.coffeevilage.Data.Menu
 
 
 import com.example.coffeevilage.Data.ScreenItem
+import com.example.coffeevilage.Navigation.currentRoute
 import com.example.coffeevilage.R
 import com.example.coffeevilage.ViewModel.CartViewModel
 import com.example.coffeevilage.ViewModel.MenuViewModel
+import com.example.coffeevilage.ViewModel.PointHistoryViewModel
 import com.example.coffeevilage.ViewModel.StateViewModel
 import com.example.coffeevilage.ViewModel.UserViewModel
 import com.example.coffeevilage.Widget.CoffeeImageCard
@@ -85,29 +93,40 @@ import com.example.coffeevilage.Widget.TabText
 import com.example.coffeevilage.Widget.TeaImageCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 
+@SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
 fun homeScreen(
     stateViewModel: StateViewModel,
     menuViewModel: MenuViewModel,
     userViewModel: UserViewModel,
     cartViewModel: CartViewModel,
-    navHostController: NavHostController
+    pointHistoryViewModel: PointHistoryViewModel,
+    navHostController: NavHostController,
+    paymentLauncher: ActivityResultLauncher<Intent>
 ) {
+    val navBackStackEntry = remember {
+        navHostController.getBackStackEntry(BottomNavItem.Home.route)
+    }
+    val lifecycle = navBackStackEntry.lifecycle
+    val lifecycleState by lifecycle.observeAsState()
+    val isRegisteredUser = userViewModel.isPhoneNumberExist
+
+    LaunchedEffect(lifecycleState) {
+        menuViewModel.getFavoriteMenus() //여기서 Favorite -> Menu
+        menuViewModel.getRecentOrderMenus()
+    }
 
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
     var showCallDialog by remember { mutableStateOf(false) }
 
     //즐겨찾기
     val favoriteMenuList by menuViewModel.favoriteMenuList.collectAsState()
     //최근 주문
-    val recentOrderMenuList = emptyList<Menu>()
+    val recentOrderMenuList by menuViewModel.recentOrderMenuList.collectAsState()
 
-    LaunchedEffect(Unit) {
-        menuViewModel.getFavoriteMenus() //여기서 Favorite -> Menu
-    }
 
     Column(
         modifier = Modifier
@@ -124,13 +143,13 @@ fun homeScreen(
             { showCallDialog = true })
         Card(
             userViewModel = userViewModel,
+            pointHistoryViewModel = pointHistoryViewModel,
             phoneRegisterClickEvent = { navHostController.navigate(ScreenItem.PhoneRegisterScreen.route) },
             pointClickEvent = { navHostController.navigate(ScreenItem.PointHistoryScreen.route) }
         )
         AnimatedImageCards()
         QuickOrderSection(recentOrderMenuList, favoriteMenuList,stateViewModel, menuViewModel )
         if (showCallDialog) {
-
             CallDialog(onClickYes = {
                 val intent = Intent(Intent.ACTION_DIAL).apply {
                     data = Uri.parse("tel:${stateViewModel.phoneNumber}")
@@ -139,7 +158,7 @@ fun homeScreen(
             }, onClickNo = { showCallDialog = false })
         }
         if (stateViewModel.showOrderBottomSheet) {
-            OrderDetailBottomSheet(stateViewModel, menuViewModel, cartViewModel)
+            OrderDetailBottomSheet(isRegisteredUser, stateViewModel, menuViewModel, cartViewModel, paymentLauncher)
         }
 
     }
@@ -148,12 +167,13 @@ fun homeScreen(
 @Composable
 fun Card(
     userViewModel: UserViewModel,
+    pointHistoryViewModel : PointHistoryViewModel,
     phoneRegisterClickEvent: () -> Unit,
     pointClickEvent: () -> Unit
 ) {
     val fontWeight = FontWeight.Bold
     val fontColor = colorResource(R.color.dark_brown)
-
+    val point = pointHistoryViewModel.point.collectAsState()
     val horizontalPaddingValue = 15.dp
 
     androidx.compose.material.Card(
@@ -211,7 +231,7 @@ fun Card(
                     ) {
                         Text(text = "보유포인트", fontWeight = fontWeight, color = fontColor)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("0", fontWeight = fontWeight, color = fontColor)
+                            Text("${point.value}", fontWeight = fontWeight, color = fontColor)
                             Text(
                                 "P",
                                 fontWeight = fontWeight,
@@ -224,8 +244,6 @@ fun Card(
                 }
             }
         } else {
-
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -297,7 +315,8 @@ fun AnimatedImageCards() {
 
 @Composable
 fun QuickOrderSection(recentOrderMenuList: List<Menu>, favoriteMenuList: List<Menu>,stateViewModel: StateViewModel,menuViewModel: MenuViewModel) {
-
+    Log.d("checksize-f","${favoriteMenuList.size}")
+    Log.d("checksize","${recentOrderMenuList.size}")
     var selectedTab by remember { mutableStateOf("최근 주문") }
 
     Row(
@@ -401,7 +420,23 @@ fun QuickOrderScreen(menus: List<Menu>, type: String, stateViewModel: StateViewM
     }
 
 }
+@Composable
+fun Lifecycle.observeAsState(): State<Lifecycle.State> {
+    val state = remember { mutableStateOf(this.currentState) }
 
+    DisposableEffect(this) {
+        val observer = LifecycleEventObserver { _, _ ->
+            state.value = this@observeAsState.currentState
+        }
+        this@observeAsState.addObserver(observer)
+
+        onDispose {
+            this@observeAsState.removeObserver(observer)
+        }
+    }
+
+    return state
+}
 @Composable
 fun FavoriteOrderScreen() {
     Text("즐겨찾기 화면", modifier = Modifier.padding(16.dp))

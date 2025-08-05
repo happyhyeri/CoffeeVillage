@@ -24,8 +24,7 @@ class CartViewModel : ViewModel() {
     private val _cartItemCount = MutableStateFlow(0)
     val cartItemCount = _cartItemCount.asStateFlow()
 
-    private val _totalPrice = MutableStateFlow(0)
-    val atotalPrice = _totalPrice.asStateFlow()
+
 
     var totalPrice by mutableStateOf(0)
     val cartList = mutableStateListOf<CartItem>()
@@ -130,5 +129,12 @@ class CartViewModel : ViewModel() {
         }else{
             cartList.removeIf { it.menu.id == cartItem.menu.id && it.optionAppliedPrice == cartItem.optionAppliedPrice}
         }
+    }
+
+    fun clearCartData(){
+        cartList.clear()
+        _cartItemCount.value = 0
+        totalPrice = 0
+
     }
 }

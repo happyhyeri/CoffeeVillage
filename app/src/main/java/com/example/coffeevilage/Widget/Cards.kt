@@ -234,85 +234,6 @@ fun TeaImageCard() {
 }
 
 
-@Composable
-fun homeSlideCard() {
-    var isPressed by remember { mutableStateOf(false) }
-
-    Card(
-        backgroundColor = if (isPressed) colorResource(id = R.color.brown_white) else colorResource(
-            id = R.color.brown_white
-        ),
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .width(290.dp)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        val pressResult = tryAwaitRelease()
-                        isPressed = false
-
-                    },
-                    onTap = {
-                        // Perform action on tap
-                    }
-                )
-            }
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "아이스아메리카노",
-                    color = colorResource(R.color.dark_brown),
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.coffee),
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp)
-                )
-            }
-            Divider(
-                color = Color.Gray,
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(3.dp)
-            )
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Column(modifier = Modifier.weight(1f)) {
-
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-
-                }
-            }
-        }
-
-
-    }
-
-
-}
 
 
 @Composable
@@ -371,7 +292,7 @@ fun QuickOrderCard(menu: Menu, modifier: Modifier, isSelected: Boolean, addCartI
         }
         Spacer(modifier = Modifier.height(8.dp))
         Button(
-            onClick = {addCartItem()},
+            onClick = { addCartItem() },
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorResource(R.color.dark_brown),
                 contentColor = Color.White
@@ -382,7 +303,7 @@ fun QuickOrderCard(menu: Menu, modifier: Modifier, isSelected: Boolean, addCartI
                 .weight(1f)
         ) {
             Text(
-                text = "장바구니 담기",
+                text = "주문 하기",
                 fontWeight = FontWeight.SemiBold,
                 color = colorResource(R.color.brown_white)
             )
@@ -451,7 +372,7 @@ fun CartItmeCard(cartItem: CartItem, modifier: Modifier, cartViewModel: CartView
         ) {
             IconButton(
                 onClick = {
-                    Log.d("index_cart_q","${cartItem.quantity}")
+                    Log.d("index_cart_q", "${cartItem.quantity}")
                     cartViewModel.managePriceAndQuantityCartItem(
                         cartItem.quantity,
                         cartItem.optionAppliedPrice * cartItem.quantity,
@@ -503,17 +424,35 @@ fun CartItmeCard(cartItem: CartItem, modifier: Modifier, cartViewModel: CartView
                     fontSize = 14.sp, color = colorResource(R.color.dark_brown)
                 )
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "사이즈 선택:  ${cartItem.size.toString()}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp, color = colorResource(R.color.dark_brown)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "샷 선택:  ${cartItem.shot.toString()}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp, color = colorResource(R.color.dark_brown)
-                    )
+                    if (cartItem.size != null && cartItem.shot != null) {
+                        Text(
+                            text = "사이즈 선택:  ${cartItem.size.toString()}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp, color = colorResource(R.color.dark_brown)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "샷 선택:  ${cartItem.shot.toString()}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp, color = colorResource(R.color.dark_brown)
+                        )
+                    } else {
+                        if (cartItem.size != null) {
+                            Text(
+                                text = "사이즈 선택:  ${cartItem.size}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp, color = colorResource(R.color.dark_brown)
+                            )
+                        }
+                        if(cartItem.shot != null) {
+                            Text(
+                                text = "샷 선택:  ${cartItem.shot}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp, color = colorResource(R.color.dark_brown)
+                            )
+                        }
+
+                    }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 QuantitySelectorSection(
@@ -531,7 +470,12 @@ fun CartItmeCard(cartItem: CartItem, modifier: Modifier, cartViewModel: CartView
                             cartItem.optionAppliedPrice,
                             plusOrMinus
                         )
-                        cartViewModel.updateCartItem(cartItem, 1,  cartItem.optionAppliedPrice,plusOrMinus)
+                        cartViewModel.updateCartItem(
+                            cartItem,
+                            1,
+                            cartItem.optionAppliedPrice,
+                            plusOrMinus
+                        )
                     }
                 )
 
@@ -540,78 +484,6 @@ fun CartItmeCard(cartItem: CartItem, modifier: Modifier, cartViewModel: CartView
     }
 }
 
-/*//+-수량 버튼 및 가격
-@Composable
-fun QuantitySelectorSection(
-    price: Int = 2000,// 기본 단가
-    count: Int = 1,
-    buttonBackgroundColor: Color,
-    buttonTextColor: Color,
-    textColor: Color,
-    quantityFontSize: Int = 18,
-    priceFontSize: Int = 20,
-    buttonSize: Int = 30,
-    buttonTextSize: Int = 15,
-    horizontalArrangeMent: Arrangement.HorizontalOrVertical = Arrangement.spacedBy(10.dp),
-    onBtnClick: (Int, Int, Boolean) -> Unit, //Boolean false = minus, true = plus
-) {
-    var quantity by remember { mutableStateOf(count) } // 수량 상태
-    var totalPrice by remember { mutableStateOf(price) }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = horizontalArrangeMent,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Button(
-            onClick = {
-                if (quantity > 1) {
-                    quantity--
-                    totalPrice = quantity * price
-                    onBtnClick(quantity, totalPrice, false)
-                }
-            },
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(containerColor = buttonBackgroundColor),
-            contentPadding = PaddingValues(0.dp),
-            modifier = Modifier.size(buttonSize.dp)
-        ) {
-            Text("－", color = buttonTextColor, fontSize = buttonTextSize.sp)
-
-        }
-
-        Text(
-            text = quantity.toString(),
-            color = textColor,
-            fontSize = quantityFontSize.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Button(
-            onClick = {
-                quantity++
-                totalPrice = quantity * price
-                onBtnClick(quantity, totalPrice, true)
-            },
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = buttonBackgroundColor,
-            ),
-            contentPadding = PaddingValues(0.dp),
-            modifier = Modifier.size(buttonSize.dp)
-        ) {
-            Text("+", color = buttonTextColor, fontSize = buttonTextSize.sp)
-
-        }
-
-        Text(
-            text = "${quantity * price} 원",
-            color = textColor,
-            fontSize = priceFontSize.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 8.dp)
-        )
-    }
-}*/
 //+-수량 버튼 및 가격
 @Composable
 fun QuantitySelectorSection(

@@ -3,6 +3,7 @@ package com.example.coffeevilage.Screen
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.material3.RadioButton
@@ -63,6 +64,7 @@ import com.example.coffeevilage.R
 import com.example.coffeevilage.ViewModel.CartViewModel
 import com.example.coffeevilage.ViewModel.MenuViewModel
 import com.example.coffeevilage.ViewModel.StateViewModel
+import com.example.coffeevilage.ViewModel.UserViewModel
 import com.example.coffeevilage.Widget.CallDialog
 import com.example.coffeevilage.Widget.CommonTopAppBar
 import com.example.coffeevilage.Widget.HotIceTab
@@ -78,8 +80,12 @@ import com.example.coffeevilage.Widget.ScrollTabs
 fun orderScreen(
     stateViewModel: StateViewModel,
     menuViewModel: MenuViewModel,
-    cartViewModel: CartViewModel
+    cartViewModel: CartViewModel,
+    userViewModel: UserViewModel,
+    paymentLauncher: ActivityResultLauncher<Intent>
 ) {
+
+    val isRegisteredUser = userViewModel.isPhoneNumberExist
     var showCallDialog by remember { mutableStateOf(false) }
     val tabs = listOf("커피", "논커피", "음료", "차", "디저트")
 
@@ -111,7 +117,7 @@ fun orderScreen(
 
     }
     if (stateViewModel.showOrderBottomSheet && menuViewModel.selectedMenu != null) {
-        OrderDetailBottomSheet(stateViewModel, menuViewModel, cartViewModel)
+        OrderDetailBottomSheet(isRegisteredUser,stateViewModel, menuViewModel, cartViewModel, paymentLauncher)
     }
     if (showCallDialog) {
         CallDialog(onClickYes = {
